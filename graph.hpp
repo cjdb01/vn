@@ -10,28 +10,32 @@
  * This is a C++11 header, subject to GCC 4.7.2 as on CSE machines
  */
 #include <iostream>
-#include <list>
 #include <map>
+#include <set>
 #include <string>
 
 namespace pipe
 {
-	class network
+	class graph
 	{
 	private:
-		struct node
+		struct edge
 		{
-			char value;
+			char destination;
+			size_t weight;
 			size_t max_connections;
-			size_t distance;
+
+			
 		};
 
-		std::map<char, std::list<node*>> m_adjacencyList;
+		std::map<char, std::set<edge>> m_adjacencyList;
 	public:
-		network(std::istream& in);
-		~network();
+		graph(std::istream&);
 
-		size_t path_exists(char source, char dest);
+		std::set<char> ucs(const char from, const char to);
+
+		friend bool operator==(const edge&, const edge&);
+		friend bool operator<(const edge&, const edge&);
 	};
 }
 

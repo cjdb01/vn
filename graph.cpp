@@ -1,4 +1,4 @@
-#include "grpah.hpp"
+#include "graph.hpp"
 
 #include <functional>
 #include <queue>
@@ -7,34 +7,80 @@
 
 using namespace std;
 
-network::network(std::istream& in)
+namespace pipe
 {
-	char source;
-	while (!in.eof())
+	bool operator==(const graph::edge& lhs, const graph::edge& rhs)
 	{
-		node* n = new node();
-		in >> source;
-		in.get();
-		in >> n.destination;
-		in.get();
-		in >> n.weight;
-		in.get();
-		in >> n.max_connections;
+		return lhs.destination == rhs.destination;
+	}
 
-		m_adjacencyList[source].push_back(n);
+	bool operator<(const graph::edge& lhs, const graph::edge& rhs)
+	{
+		return lhs.weight < rhs.weight;
+	}
 
-		node* r = new node(n);
-		r.destination = source;
-		source = n.destination;
-		
-		m_adjacenyList[source].push_back(r);
+	graph::graph(istream& in)
+	{
+		char source;
+		edge e;
+		while (!in.eof())
+		{
+			in >> source;
+			in.get();
+			in >> e.destination;
+			in.get();
+			in >> e.weight;
+			in.get();
+			in >> e.max_connections;
+
+			m_adjacencyList[source].insert(e);
+
+			std::swap(e.destination, source);
+			m_adjacencyList[source].insert(e);
+		}
+	}
+
+	set<char> graph::ucs(const char from, const char to)
+	{
+		priority_queue<pair<char, size_t>> to_visit;
+		set<char> visited;
+
+		to_visit.push( { from, 0 } );
+		char current;
+
+		while (to_visit.empty() == false)
+		{
+			current = to_visit.top().first;
+			to_visit.pop();
+			if (current == to)
+				return visited;
+
+			visited.insert(current);
+
+			for (auto it = m_adjacencyList[current].cbegin(); it != m_adjacencyList[current].cend(); ++it)
+			{
+				if (visited.lower_bound(it->destination) == visited.end())
+					to_visit.push( { it->destination, it->weight } );
+			}
+		}
+
+		return set<char>();
 	}
 }
 
-size_t network::path_exists(char source, char dest)
+using namespace pipe;
+#include <fstream>
+int main()
 {
-	priority_queue<node*, vector<node*>, [] (node* lhs, node* rhs) { if (lhs->weight == rhs->weight) return 0; else if (lhs->weight < rhs->weight) return -1; else return 1; }> to_visit;
-	set<char> visited;
+	std::ifstream i("input.txt", ifstream::in);
+	graph g(i);
 
-	to_visit.push(
+	auto s = g.ucs('A', 'D');
+
+	for (auto it = s.cbegin(); it != s.cend(); ++it)
+	{
+		cout << *it << endl;
+	}
+
+	return 0;
 }
