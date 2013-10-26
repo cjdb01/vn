@@ -11,7 +11,7 @@
 
 struct node { char n; node* p; node(char, node*); };
 
-struct edge { char a; char b; const size_t weight; size_t load; edge(char, char, size_t, size_t); };
+struct edge { char a; char b; const size_t weight; size_t load; size_t max_load; edge(char, char, size_t, size_t); };
 
 class graph
 {
@@ -27,6 +27,7 @@ public:
     
     std::vector<node*> shp(char from, char to);
 	std::vector<node*> sdp(char from, char to);
+	std::vector<node*> llp(char from, char to);
 	std::pair<size_t, size_t> establish_connection(const size_t& time, const std::vector<node*>& n);
 	inline void abolish_connection(const size_t& time);
 };

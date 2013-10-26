@@ -12,7 +12,7 @@ using namespace std;
 
 node::node(char v, node* ptr) : n(v), p(ptr) { }
 
-edge::edge(char f, char t, const size_t w, size_t l) : a(f), b(t), weight(w), load(l) { }
+edge::edge(char f, char t, const size_t w, size_t l) : a(f), b(t), weight(w), load(0), max_load(l) { }
 
 graph::graph(istream& in)
 {
@@ -72,12 +72,12 @@ vector<node*> graph::shp(char from, char to)
                         count = (*i)->a == (*it)->n ? true : false;
                 }
             
-				if (count == false && (*i)->load > 0)
+				if (count == false && (*i)->load < (*i)->max_load)
                 {
                     auto v = (*i)->a == n->n ? (*i)->b : (*i)->a;
                     to_visit.push(new node(v, visited.back()));
                 }
-				else if (count == false && (*i)->load == 0)
+				else if (count == false && (*i)->load == (*i)->max_load)
 				{
 					return vector<node*>();
 				}
@@ -125,12 +125,12 @@ vector<node*> graph::sdp(char from, char to)
                         count = (*i)->a == (*it)->n ? true : false;
                 }
             
-				if (count == false && (*i)->load > 0)
+				if (count == false && (*i)->load < (*i)->max_load)
                 {
                     auto v = (*i)->a == n.first->n ? (*i)->b : (*i)->a;
 					to_visit.push(make_pair(new node(v, visited.back()), n.second + (*i)->weight));
                 }
-				else if (count == false && (*i)->load == 0)
+				else if (count == false && (*i)->load == (*i)->max_load)
 				{
 					return vector<node*>();
 				}
@@ -138,6 +138,53 @@ vector<node*> graph::sdp(char from, char to)
         }
     }
     return vector<node*>();
+}
+
+vector<node*> graph::llp(char from, char to)
+{
+	priority_queue<pair<node*, size_t>, vector<pair<node*, size_t>>> to_visit;
+	vector<node*> visited;
+
+	to_visit.push(make_pair(new node(from, nullptr), 0));
+
+	 while (!to_visit.empty())
+    {
+        auto n = to_visit.top();
+		visited.push_back(n.first);
+        to_visit.pop();
+        
+		if (n.first->n == to)
+        {
+            return visited;
+        }
+        else
+        {
+			for (auto i = m_adj[n.first->n].begin(); i != m_adj[n.first->n].end(); ++i)
+            {
+                auto count = false;
+            
+                for (auto it = visited.begin(); it != visited.end() && count == false; ++it)
+                {
+					if (n.first->n == (*i)->a)
+                        count = (*i)->b == (*it)->n ? true : false;
+                    else
+                        count = (*i)->a == (*it)->n ? true : false;
+                }
+            
+				if (count == false && (*i)->load < (*i)->max_load)
+                {
+                    auto v = (*i)->a == n.first->n ? (*i)->b : (*i)->a;
+					to_visit.push(make_pair(new node(v, visited.back()), static_cast<size_t>(pow(10, 6) * (*i)->load / (*i)->max_load)));
+                }
+				else if (count == false && (*i)->load == (*i)->max_load)
+				{
+					return vector<node*>();
+				}
+            }
+        }
+    }
+
+	return vector<node*>();
 }
 
 stack<node*> graph::sanitise(const vector<node*>& n) const
@@ -173,7 +220,7 @@ pair<size_t, size_t> graph::establish_connection(const size_t& time, const vecto
 			if ((s.top()->n == (*it)->a && s.top()->p->n == (*it)->b) || (s.top()->n == (*it)->b && s.top()->p->n == (*it)->a))
 			{
 				prop += (*it)->weight;
-				--(*it)->load;
+				++(*it)->load;
 				m_connection[time].push_back(*it);
 				break;
 			}
@@ -217,7 +264,7 @@ int main()
 {
 	ifstream i("input.txt", ios::in);
 	ifstream workload("workload.txt", ios::in);
-	string type = "SDP";
+	string type = "LLP";
     graph g(i);
 
 	map<size_t, tuple<char, char, size_t>> connection_data;
@@ -261,8 +308,10 @@ int main()
 			
 			if (type == "SHP")
 				request = g.shp(get<0>(it->second), get<1>(it->second));
-			else
+			else if (type == "SDP")
 				request = g.sdp(get<0>(it->second), get<1>(it->second));
+			else
+				request = g.llp(get<0>(it->second), get<1>(it->second));
 			
 			if (!request.empty())
 			{
