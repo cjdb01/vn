@@ -299,7 +299,7 @@ int main()
 	vector<size_t> hops;
 	vector<size_t> prop_delay;
 
-	for (auto time = 0; time < max_time; ++time)
+	for (size_t time = 0; time < max_time; ++time)
 	{
 		auto it = connection_data.find(time);
 		if (it != connection_data.end())
