@@ -1,86 +1,85 @@
 #include "graph.hpp"
 
-#include <functional>
+#include <algorithm>
 #include <queue>
-#include <set>
-#include <vector>
 
 using namespace std;
 
-namespace pipe
+node::node(char v, node* ptr) : n(v), p(ptr) { }
+
+edge::edge(char f, char t, const size_t w, size_t l) : a(f), b(t), weight(w), load(l) { }
+
+graph::graph(istream& in)
 {
-	bool operator==(const graph::edge& lhs, const graph::edge& rhs)
-	{
-		return lhs.destination == rhs.destination;
-	}
+    char from, to;
+    size_t weight, max_load;
+    while (!in.eof())
+    {
+        in >> from;
+        in.get();
+        in >> to;
+        in.get();
+        in >> weight;
+        in.get();
+        in >> max_load;
 
-	bool operator<(const graph::edge& lhs, const graph::edge& rhs)
-	{
-		return lhs.weight < rhs.weight;
-	}
-
-	graph::graph(istream& in)
-	{
-		char source;
-		edge e;
-		while (!in.eof())
-		{
-			in >> source;
-			in.get();
-			in >> e.destination;
-			in.get();
-			in >> e.weight;
-			in.get();
-			in >> e.max_connections;
-
-			m_adjacencyList[source].insert(e);
-
-			std::swap(e.destination, source);
-			m_adjacencyList[source].insert(e);
-		}
-	}
-
-	set<char> graph::ucs(const char from, const char to)
-	{
-		priority_queue<pair<char, size_t>> to_visit;
-		set<char> visited;
-
-		to_visit.push( { from, 0 } );
-		char current;
-
-		while (to_visit.empty() == false)
-		{
-			current = to_visit.top().first;
-			to_visit.pop();
-			if (current == to)
-				return visited;
-
-			visited.insert(current);
-
-			for (auto it = m_adjacencyList[current].cbegin(); it != m_adjacencyList[current].cend(); ++it)
-			{
-				if (visited.lower_bound(it->destination) == visited.end())
-					to_visit.push( { it->destination, it->weight } );
-			}
-		}
-
-		return set<char>();
-	}
+        edge *e = new edge(from, to, weight, max_load);
+        
+        m_adj[from].push_back(e);
+        m_adj[to].push_back(e);
+    }
 }
 
-using namespace pipe;
-#include <fstream>
+vector<node*> graph::shp(char from, char to)
+{
+    queue<node*> to_visit;
+    vector<node*> visited;
+    
+    to_visit.push(new node { from, nullptr } );
+    
+    while (!to_visit.empty())
+    {
+        auto n = to_visit.front();
+        visited.push_back(n);
+        to_visit.pop();
+        
+        if (n->n == to)
+        {
+            return visited;
+        }
+        else
+        {
+            for (auto i = m_adj[n->n].begin(); i != m_adj[n->n].end(); ++i)
+            {
+                auto count = 0;
+            
+                for (auto it = visited.begin(); it != visited.end(); ++it)
+                {
+                    if (n->n == (*i)->a)
+                        count = (*i)->b == (*it)->n ? 1 : 0;
+                    else
+                        count = (*i)->a == (*it)->n ? 1 : 0;
+                }
+            
+                if (count == 0)
+                {
+                    auto v = (*i)->a == n->n ? (*i)->b : (*i)->a;
+                    to_visit.push(new node{v, visited.front()});
+                }
+            }
+        }
+    }
+    return vector<node*>();
+}
+
 int main()
 {
-	std::ifstream i("input.txt", ifstream::in);
-	graph g(i);
-
-	auto s = g.ucs('A', 'D');
-
-	for (auto it = s.cbegin(); it != s.cend(); ++it)
-	{
-		cout << *it << endl;
-	}
-
-	return 0;
+    graph g(std::cin);
+    auto s = g.shp('A', 'D');
+    for (auto it = s.begin(); it != s.end(); ++it)
+    {
+        cout << (*it)->n << endl;
+    }
+    
+    return 0;
 }
