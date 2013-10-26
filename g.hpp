@@ -23,7 +23,7 @@ private:
 
 	std::default_random_engine        m_random;
 public:
-    graph(std::istream&);
+    graph(std::ifstream&);
     
     std::vector<node*> shp(char from, char to);
 	std::vector<node*> sdp(char from, char to);

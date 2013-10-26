@@ -14,7 +14,7 @@ node::node(char v, node* ptr) : n(v), p(ptr) { }
 
 edge::edge(char f, char t, const size_t w, size_t l) : a(f), b(t), weight(w), load(0), max_load(l) { }
 
-graph::graph(istream& in)
+graph::graph(ifstream& in)
 {
     char from, to;
     size_t weight, max_load;
@@ -29,7 +29,7 @@ graph::graph(istream& in)
         in >> max_load;
 
         edge *e = new edge(from, to, weight, max_load);
-        
+
         m_adj[from].push_back(e);
         m_adj[to].push_back(e);
     }
@@ -260,11 +260,16 @@ size_t static_pow(size_t n, size_t p)
 	return p == 1 ? n : n * static_pow(n, p - 1);
 }
 
-int main()
+int main(int argc, char* argv[])
 {
-	ifstream i("input.txt", ios::in);
-	ifstream workload("workload.txt", ios::in);
-	string type = "LLP";
+    string type(argv[1]);
+    string topology(argv[2]);
+    string work(argv[3]);
+
+//    cout << type << " " << topology << " " << work << endl;
+
+    ifstream i(topology, ios::in);
+    ifstream workload(work, ios::in);
     graph g(i);
 
 	map<size_t, tuple<char, char, size_t>> connection_data;

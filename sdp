@@ -1,0 +1,7 @@
+total number of virtual circuit requests: 5884
+number of successfully routed requests: 4188
+percentage of successfully routed request: 71.18
+number of blocked requests: 1696
+percentage of blocked requests: 28.82
+average number of hops per circuit: 6.01
+average cumulative propagation delay per circuit: 6.37
